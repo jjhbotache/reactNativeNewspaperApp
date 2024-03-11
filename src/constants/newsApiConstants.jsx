@@ -1,0 +1,1 @@
+export const baseUrl = 'http://eventregistry.org/api/v1/';
