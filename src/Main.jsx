@@ -1,15 +1,18 @@
-import { View, Text, FlatList, ScrollView } from 'react-native';
+import { View, Text, FlatList, ScrollView, Image} from 'react-native';
 import { mainPageStyles } from './pages/Main/MainStyles';
 import StyledText from './components/StyledText/StyledText';
 import Separator from './components/Separator/Separator';
 import { useEffect, useState } from 'react';
 import { NEWS_API_KEY } from '@env';
 import { baseUrl } from './constants/newsApiConstants';
+import { StyleSheet } from 'react-native-web';
 
 export default function Main() {
-  const [articles, setArticles] = useState([]);
-  useEffect(() => {
 
+  const [articles, setArticles] = useState([]);
+
+
+  useEffect(() => {
     fetch(baseUrl+"article/getArticles",{
       method: 'POST',
       headers: {
@@ -22,10 +25,20 @@ export default function Main() {
     })
     .then(response => response.json())
     .then(data => {
-      const firstArticle = data.articles.results[0]
-      setArticles(data.articles.results)
+      let articles_to_show = data.articles.results;
+      // filter by languaje "eng"
+      articles_to_show = articles_to_show.filter(a => a.lang === "eng")
+      articles_to_show = articles_to_show.slice(0, 10)
+
+      setArticles(articles_to_show)
     })
-  }, []);
+    .catch((error) => {
+      console.log("Error: ", error);
+    });
+
+  }, [])
+
+
   return(
     <View style={mainPageStyles.page} >
       <StyledText size={"lg"} color={"primary"} bold> News app </StyledText>
@@ -33,10 +46,12 @@ export default function Main() {
       <FlatList 
         data={articles}
         renderItem={({item:a},i) =>(
-          <View key={i} style={{paddingHorizontal:10}}>
+          <ScrollView key={i} style={articleStyles.articleContainer}>
+            <Image source={{uri: a.image}} style={articleStyles.img} resizeMode='cover'/>
+            <Separator/>
             <StyledText size={"md"} color={"primary"} bold> {a.title} </StyledText>
-            <StyledText size={"sm"} color={"secondary"}> {a.body.slice(0,500)} </StyledText>
-          </View>
+            {/* <StyledText size={"sm"} color={"secondary"}> {a.body} </StyledText> */}
+          </ScrollView>
         )}
         ItemSeparatorComponent={<Separator mv={40}/>}
         >
@@ -44,3 +59,18 @@ export default function Main() {
     </View>
   )
 };
+
+const articleStyles = StyleSheet.create({
+  articleContainer:{
+    padding: 20,
+    margin: 20,
+    backgroundColor: '#444',
+    borderRadius: 10,
+    height: "auto",
+    // maxHeight: 300,
+  },
+  img:{
+    width: 400,
+    height: 200,
+  }
+})

@@ -7,6 +7,7 @@ export default function Separator({mv=5}) {
       borderBottomColor: 'white',
       borderBottomWidth: 2,
       marginVertical: mv,
+      marginHorizontal: 12,
     }
   })
   return <View style={styles.separator} />  
