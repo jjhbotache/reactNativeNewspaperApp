@@ -6,10 +6,42 @@ import { useEffect, useState } from 'react';
 import { NEWS_API_KEY } from '@env';
 import { baseUrl } from './constants/newsApiConstants';
 import { StyleSheet } from 'react-native-web';
+import SearchBar from './components/SearchBar/SearchBar';
 
 export default function Main() {
 
   const [articles, setArticles] = useState([]);
+
+  let searchTimeout = null;
+  function searchBarTextChanged(text) {
+    // debounce
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      fetch(baseUrl+"article/getArticles",{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          "apiKey": NEWS_API_KEY,
+          "keyword": text,
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        let articles_to_show = data.articles.results;
+        // filter by languaje "eng"
+        articles_to_show = articles_to_show.filter(a => a.lang === "eng")
+        articles_to_show = articles_to_show.slice(0, 10)
+
+        setArticles(articles_to_show)
+      })
+      .catch((error) => {
+        console.log("Error: ", error);
+      });
+    }, 500);
+
+  }
 
 
   useEffect(() => {
@@ -42,6 +74,8 @@ export default function Main() {
   return(
     <View style={mainPageStyles.page} >
       <StyledText size={"lg"} color={"primary"} bold> News app </StyledText>
+      <Separator/>
+      <SearchBar onChangeText={searchBarTextChanged}/>
       <Separator/>
       <FlatList 
         data={articles}
